@@ -105,5 +105,33 @@ Potential directions to extend this project:
 * Additional order types (market orders, IOC/FOK)
 * Simple risk checks (max size/notional per account)
 
+### Benchmarks
+This section will serve to show how different optimizations have impacted the performance of this program
+
+Initial commit:
+```bash
+$ ./test_engine 
+=== Matching Engine Test ===
+num_ops          = 1000000
+cancel_prob_pct  = 10%
+max_price        = 1000
+max_qty          = 100
+seed             = 179158905
+
+=== Results ===
+Elapsed time: 0.498953 s
+Operations:   1000000
+Ops/sec:      2.0042e+06
+Orders accepted:   900245
+Orders rejected:   0
+Trades:            697427
+Total traded qty:  17797576
+Cancels OK:        19292
+Cancels FAIL:      80463
+Final best bid: 589
+Final best ask: 748
+```
+
+
 
 
