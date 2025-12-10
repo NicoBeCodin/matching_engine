@@ -5,7 +5,7 @@ project(MatchingEngine
     DESCRIPTION "C++ matching engine"
     LANGUAGES CXX)
 
-# ---------- Global C++ settings ---------- #
+# Global C++ 
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,6 +17,8 @@ if(NOT CMAKE_BUILD_TYPE)
         "Choose the type of build (Debug, Release, RelWithDebInfo, MinSizeRel)."
         FORCE)
 endif()
+
+
 
 # Some reasonable warning flags
 if (MSVC)
@@ -36,6 +38,17 @@ target_include_directories(matching_engine
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+
+if (NOT MSVC)
+  target_compile_options(matching_engine PRIVATE
+    $<$<CONFIG:Release>:-O3 -march=native -DNDEBUG>
+    )
+    target_link_options(matching_engine PRIVATE
+      $<$<CONFIG:Release>: -flto>
+    )
+endif()
+
 
 # main_demo executable
 
