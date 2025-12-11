@@ -134,7 +134,7 @@ Final best ask: 748
 After replacing with std::deque for order book
 
 ```bash
-(base) nico@nico-ThinkPad-T490:~/Desktop/code_projects/matching_engine/build$ ./test_engine 
+$ ./test_engine 
 === Matching Engine Test ===
 num_ops          = 1000000
 cancel_prob_pct  = 10%
@@ -158,7 +158,7 @@ Final best ask: 435
 
 After adding .reserve(num_ops) for the hashmap
 ```bash
-(base) nico@nico-ThinkPad-T490:~/Desktop/code_projects/matching_engine/build$ ./test_engine 
+$ ./test_engine 
 === Matching Engine Test ===
 num_ops          = 1000000
 cancel_prob_pct  = 10%
