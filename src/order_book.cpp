@@ -29,40 +29,63 @@ void OrderBook::add_limit_order(const OrderRequest& req) {
 }
 
 void OrderBook::cancel_order(OrderId id) {
-    auto it = id_index_.find(id);
-    if (it == id_index_.end()) {
+    auto loc_it = locator_.find(id);
+    if (loc_it == locator_.end()) {
         listener_.on_order_cancelled(id, false);
         return;
     }
 
-    auto& ref = it->second;
+    const Side side = loc_it->second.side;
+    const Price price = loc_it->second.price;
 
-    if (ref.side == Side::Buy) {
-        auto level_it = ref.bid_level_it;
-        PriceLevel& level = level_it->second;
-        auto order_it = ref.order_it;
+    bool success = false;
 
-        level.total_qty -= order_it->remaining_qty;
-        level.orders.erase(order_it);
-
-        if (level.orders.empty()) {
-            bids_.erase(level_it);
-        }
+    if (side == Side::Buy) {
+        auto level_it = bids_.find(price);
+        
+        if (level_it == bids_.end()){
+            PriceLevel& level = level_it->second;
+            auto it = level.orders.begin();
+            while (it != level.orders.end()) {
+                if (it->id == id){
+                    level.total_qty -= it->remaining_qty;
+                    it = level.orders.erase(it);
+                    success = true;
+                    break;
+                } else {
+                    ++it;
+                }
+            }
+            if (level.orders.empty()){
+                bids_.erase(level_it);
+            }
+            
+        } 
     } else {
-        auto level_it = ref.ask_level_it;
-        PriceLevel& level = level_it->second;
-        auto order_it = ref.order_it;
-
-        level.total_qty -= order_it->remaining_qty;
-        level.orders.erase(order_it);
-
-        if (level.orders.empty()) {
-            asks_.erase(level_it);
-        }
+        auto level_it = asks_.find(price);
+        if (level_it != asks_.end()){
+            PriceLevel& level = level_it->second;
+            auto it = level.orders.begin();
+            while (it != level.orders.end()){
+                if (it->id == id){
+                    level.total_qty -= it -> remaining_qty;
+                    it = level.orders.erase(it);
+                    success =true;
+                    break;
+                } else {
+                    ++it;
+                }
+            }
+            if (level.orders.empty()){
+                asks_.erase(level_it);
+            }
+         }
+    }
+    if (success){
+        locator_.erase(loc_it);
     }
 
-    id_index_.erase(it);
-    listener_.on_order_cancelled(id, true);
+    listener_.on_order_cancelled(id, success);
 }
 
 std::optional<Price> OrderBook::best_bid() const {
@@ -79,7 +102,7 @@ std::optional<Price> OrderBook::best_ask() const {
     return asks_.begin()->first;
 }
 
-// --------- OrderBook private helpers --------- //
+// OrderBook private helpers
 
 void OrderBook::match_buy(const OrderRequest& req, Qty& remaining) {
     while (remaining > 0 && !asks_.empty()) {
@@ -109,22 +132,17 @@ void OrderBook::match_buy(const OrderRequest& req, Qty& remaining) {
             level.total_qty       -= traded;
 
             if (resting.remaining_qty == 0) {
-                // remove from id index
-                id_index_.erase(resting.id);
+                // remove from locator
+                locator_.erase(resting.id);
                 it = level.orders.erase(it);
             } else {
                 ++it;
             }
         }
-
+        
         if (level.orders.empty()) {
             asks_.erase(best_ask_it);
-        } else {
-            // still resting orders at this level; stop if no more crossing
-            if (level.price > req.price) {
-                break;
-            }
-        }
+        } 
     }
 }
 
@@ -154,8 +172,8 @@ void OrderBook::match_sell(const OrderRequest& req, Qty& remaining) {
             remaining             -= traded;
             level.total_qty       -= traded;
 
-            if (resting.remaining_qty == 0) {
-                id_index_.erase(resting.id);
+            if (resting.remaining_qty == 0){
+                locator_.erase(resting.id);
                 it = level.orders.erase(it);
             } else {
                 ++it;
@@ -187,12 +205,9 @@ void OrderBook::add_resting_order(const OrderRequest& req, Qty remaining) {
         PriceLevel& level = level_it->second;
         auto order_it = level.orders.insert(level.orders.end(), ro);
         level.total_qty += remaining;
-
-        IdRef ref;
-        ref.side          = Side::Buy;
-        ref.order_it      = order_it;
-        ref.bid_level_it  = level_it;
-        id_index_[req.id] = ref;
+        
+        locator_[req.id] = Locator{Side::Buy, req.price};
+        
     } else {
         auto [level_it, inserted] =
             asks_.try_emplace(req.price, PriceLevel{req.price, {}, 0});
@@ -200,10 +215,7 @@ void OrderBook::add_resting_order(const OrderRequest& req, Qty remaining) {
         auto order_it = level.orders.insert(level.orders.end(), ro);
         level.total_qty += remaining;
 
-        IdRef ref;
-        ref.side          = Side::Sell;
-        ref.order_it      = order_it;
-        ref.ask_level_it  = level_it;
-        id_index_[req.id] = ref;
+        locator_[req.id] = Locator{Side::Sell, req.price};
+
     }
 }

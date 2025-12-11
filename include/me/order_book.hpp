@@ -3,7 +3,7 @@
 #include "types.hpp"
 #include "listener.hpp"
 
-#include <list>
+#include <deque>
 #include <map>
 #include <optional>
 #include <unordered_map>
@@ -13,6 +13,7 @@
 //  - We keep maps for bid/ask sides keyed by price.
 //  - We maintain an id -> iterator map for O(1) cancel.
 
+//Each price level has a Resting Order
 struct RestingOrder {
     OrderId  id;
     Side     side;
@@ -21,12 +22,14 @@ struct RestingOrder {
     uint64_t arrival_seq;  // for debugging / tie-break, if needed
 };
 
+//The book is made up of price levels
 struct PriceLevel {
     Price                 price;
-    std::list<RestingOrder> orders; // FIFO at this price
+    std::deque<RestingOrder> orders; // FIFO at this price
     Qty                   total_qty{0};
 };
 
+//We will eventualize virtualize this class to allow for different order bokk implementations
 class OrderBook {
 public:
     explicit OrderBook(IMatchEventListener& listener)
@@ -52,19 +55,15 @@ private:
     uint64_t arrival_counter_{0};
 
     // order id -> iterator info
-    struct IdRef {
+    struct Locator {
         Side side;
-        // Pointer-ish to level and order
-        std::list<RestingOrder>::iterator order_it;
-        // raw iterators into map; we store separately by side
-        BidMap::iterator bid_level_it; // valid if side == Buy
-        AskMap::iterator ask_level_it; // valid if side == Sell
+        Price price;
     };
 
-    std::unordered_map<OrderId, IdRef> id_index_;
+    std::unordered_map<OrderId, Locator> locator_;
 
     IMatchEventListener& listener_;
-
+    //Internal logic of the match
     void match_buy(const OrderRequest& req, Qty& remaining);
 
     void match_sell(const OrderRequest& req, Qty& remaining);

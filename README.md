@@ -131,7 +131,28 @@ Cancels FAIL:      80463
 Final best bid: 589
 Final best ask: 748
 ```
+After replacing with std::deque for order book
 
+```bash
+(base) nico@nico-ThinkPad-T490:~/Desktop/code_projects/matching_engine/build$ ./test_engine 
+=== Matching Engine Test ===
+num_ops          = 1000000
+cancel_prob_pct  = 10%
+max_price        = 1000
+max_qty          = 100
+seed             = 1056686254
 
-
+=== Results ===
+Elapsed time: 0.400675 s
+Operations:   1000000
+Ops/sec:      2.49579e+06
+Orders accepted:   899884
+Orders rejected:   0
+Trades:            696699
+Total traded qty:  17785288
+Cancels OK:        9791
+Cancels FAIL:      90325
+Final best bid: 358
+Final best ask: 435
+```
 
