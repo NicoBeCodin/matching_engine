@@ -4,7 +4,7 @@
 
 int main() {
     StdoutMatchEventListener listener;
-    MatchingEngine engine(listener);
+    MatchingEngine engine(listener, 0);
 
     engine.submit_limit_order({1, Side::Buy, 100, 10});
     engine.submit_limit_order({2, Side::Sell, 101, 5});

@@ -7,8 +7,8 @@
 
 class MatchingEngine {
 public:
-    explicit MatchingEngine(IMatchEventListener& listener)
-        : book_(listener) {}
+    explicit MatchingEngine(IMatchEventListener& listener, std::size_t expected_orders)
+        : book_(listener, expected_orders) {}
 
     OrderAck submit_limit_order(const OrderRequest& req);
     void cancel_order(OrderId id);

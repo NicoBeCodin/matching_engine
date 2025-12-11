@@ -32,8 +32,12 @@ struct PriceLevel {
 //We will eventualize virtualize this class to allow for different order bokk implementations
 class OrderBook {
 public:
-    explicit OrderBook(IMatchEventListener& listener)
-        : listener_(listener) {}
+    explicit OrderBook(IMatchEventListener& listener, std::size_t expected_orders=0)
+        : listener_(listener) {
+            if (expected_orders>0){
+                locator_.reserve(expected_orders);
+            }
+        }
 
     // Only limit orders, good-till-cancelled
     void add_limit_order(const OrderRequest& req);

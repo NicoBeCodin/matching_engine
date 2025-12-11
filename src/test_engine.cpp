@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
     std::cout << "seed             = " << seed << "\n";
 
     StatsListener listener;
-    MatchingEngine engine(listener);
+    MatchingEngine engine(listener, num_ops);
 
     std::mt19937_64 rng(seed);
     std::uniform_int_distribution<int> op_dist(0, 99);               // for cancel vs order

@@ -156,3 +156,27 @@ Final best bid: 358
 Final best ask: 435
 ```
 
+After adding .reserve(num_ops) for the hashmap
+```bash
+(base) nico@nico-ThinkPad-T490:~/Desktop/code_projects/matching_engine/build$ ./test_engine 
+=== Matching Engine Test ===
+num_ops          = 1000000
+cancel_prob_pct  = 10%
+max_price        = 1000
+max_qty          = 100
+seed             = 389354856
+
+=== Results ===
+Elapsed time: 0.246782 s
+Operations:   1000000
+Ops/sec:      4.05216e+06
+Orders accepted:   900222
+Orders rejected:   0
+Trades:            697411
+Total traded qty:  17791695
+Cancels OK:        9660
+Cancels FAIL:      90118
+Final best bid: 312
+Final best ask: 692
+```
+
